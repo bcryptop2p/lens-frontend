@@ -12,6 +12,7 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
+import { Post } from '../types';
 
 const Home: NextPage = () => {
   const { data } = useAccount();
@@ -19,7 +20,7 @@ const Home: NextPage = () => {
   const address = data?.address;
   const connected = !!data?.address;
 
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
 
   const signIn = async () => {
