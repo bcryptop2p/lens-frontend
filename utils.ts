@@ -5,6 +5,7 @@ import {
   InMemoryCache,
 } from '@apollo/client';
 import { gql } from '@apollo/client';
+import { useState } from 'react';
 
 const APIURL = 'https://api.lens.dev/';
 
@@ -77,8 +78,8 @@ const GET_PUBLICATIONS_QUERY = `
 query {
   explorePublications(request: {
     sortCriteria: TOP_COMMENTED,
-    publicationTypes: [POST, COMMENT, MIRROR],
-    limit: 10
+    publicationTypes: [POST],
+    limit: 20
   }) {
     items {
       __typename 
@@ -211,21 +212,21 @@ fragment MetadataOutputFields on MetadataOutput {
   }
 }
 
-fragment PostFields on Post {
-  id
-  profile {
-    ...ProfileFields
+  fragment PostFields on Post {
+    id
+    profile {
+      ...ProfileFields
+    }
+    stats {
+      ...PublicationStatsFields
+    }
+    metadata {
+      ...MetadataOutputFields
+    }
+    createdAt
+    appId
   }
-  stats {
-    ...PublicationStatsFields
-  }
-  metadata {
-    ...MetadataOutputFields
-  }
-  createdAt
-  appId
-}
-`;
+  `;
 
 export const getPublications = async () => {
   const { data } = await apolloClient.query({

@@ -4,10 +4,13 @@ import { useAccount, useSignMessage } from 'wagmi';
 import { useEffect, useState } from 'react';
 import { authenticate, getPublications, generateChallenge } from '../utils';
 import {
+  Avatar,
   Button,
   Container,
   Heading,
   HStack,
+  Link,
+  Skeleton,
   Text,
   Textarea,
   VStack,
@@ -19,15 +22,20 @@ const Home: NextPage = () => {
   const { signMessageAsync } = useSignMessage();
   const address = data?.address;
   const connected = !!data?.address;
+  const [signedIn, setSignedIn] = useState(false);
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
 
   const signIn = async () => {
+    if (!connected) {
+      return alert('Please connect your wallet first');
+    }
     const challenge = await generateChallenge(data?.address as string);
     const signature = await signMessageAsync({ message: challenge });
     const accessToken = await authenticate(address as string, signature);
     window.sessionStorage.setItem('accessToken', accessToken);
+    setSignedIn(true);
   };
 
   useEffect(() => {
@@ -35,14 +43,19 @@ const Home: NextPage = () => {
   }, []);
 
   return (
-    <Container>
-      <ConnectButton />
-      <Button onClick={signIn}>Sign in</Button>
+    <Container paddingY='10'>
+      <ConnectButton showBalance={false} />
+      {!signedIn && (
+        <Button onClick={signIn} marginTop='2'>
+          Login with Lens
+        </Button>
+      )}
 
       <Textarea
         placeholder='Author a post..'
         value={newPostContent}
         onChange={(e) => setNewPostContent(e.target.value)}
+        marginTop='4'
       />
       <Button disabled={!newPostContent} marginTop='2'>
         Create post
@@ -61,9 +74,13 @@ const Home: NextPage = () => {
                 width='full'
                 alignItems='left'
               >
-                <Text fontWeight='bold' justifyContent='left'>
-                  {post.profile?.name || post.profile?.id}
-                </Text>
+                <HStack>
+                  <Avatar src={post.profile.picture.original.url} />
+                  <Text fontWeight='bold' justifyContent='left'>
+                    {post.profile?.handle || post.profile?.id}
+                  </Text>
+                </HStack>
+
                 <Text>{post.metadata?.content}</Text>
 
                 <HStack>
@@ -76,10 +93,26 @@ const Home: NextPage = () => {
                   <Text textColor='gray.400'>
                     {post.stats?.totalAmountOfCollects} collects
                   </Text>
+
+                  <Link
+                    isExternal={true}
+                    href={`https://lenster.xyz/posts/${post.id}`}
+                    marginLeft='auto'
+                  >
+                    View on Lenster ↗
+                  </Link>
                 </HStack>
               </VStack>
             );
           })}
+
+        {posts.length === 0 || !posts ? (
+          <VStack>
+            {[...Array(10)].map((_, idx) => {
+              return <Skeleton key={idx} height='32' width='xl' rounded='md' />;
+            })}
+          </VStack>
+        ) : null}
       </VStack>
     </Container>
   );

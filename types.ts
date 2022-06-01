@@ -3,7 +3,13 @@ export interface Post {
   id: string;
   profile: {
     id: string;
+    handle: string;
     name: string;
+    picture: {
+      original: {
+        url: string;
+      };
+    };
   };
   metadata: {
     content: string;
